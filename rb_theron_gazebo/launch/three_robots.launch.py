@@ -25,7 +25,6 @@
 
 import launch
 import launch_ros
-from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 from robotnik_common.launch import add_launch_args
