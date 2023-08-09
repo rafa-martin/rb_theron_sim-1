@@ -24,16 +24,19 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import launch
-import launch_ros
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch.actions import IncludeLaunchDescription
+from lauch_ros.substitutions import FindPackageShare
 
 from robotnik_common.launch import RewrittenYaml
 
 
 def read_params(
-    ld: launch.LaunchDescription,
+    ld: LaunchDescription,
     params: list[
         tuple[
             str,
@@ -47,7 +50,7 @@ def read_params(
     # Declare the launch options
     for param in params:
         ld.add_action(
-            launch.actions.DeclareLaunchArgument(
+            DeclareLaunchArgument(
                 name=param[0],
                 description=param[1],
                 default_value=param[2],
@@ -57,14 +60,14 @@ def read_params(
     # Get the launch configuration variables
     ret = {}
     for param in params:
-        ret[param[0]] = launch.substitutions.LaunchConfiguration(param[0])
+        ret[param[0]] = LaunchConfiguration(param[0])
 
     return ret
 
 
 def generate_launch_description():
 
-    ld = launch.LaunchDescription()
+    ld = LaunchDescription()
     p = [
         (
             'use_sim_time',
@@ -80,7 +83,7 @@ def generate_launch_description():
             'controller_path',
             'Path of controllers.',
             [
-                launch_ros.substitutions.FindPackageShare('rb_theron_gazebo'),
+                FindPackageShare('rb_theron_gazebo'),
                 '/config/controller.yaml',
             ]
         ),
@@ -108,7 +111,7 @@ def generate_launch_description():
     )
 
     ld.add_action(
-        launch.actions.IncludeLaunchDescription(
+        IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(
                     get_package_share_directory('rb_theron_description'),
