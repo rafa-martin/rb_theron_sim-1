@@ -27,10 +27,14 @@ import launch
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch.actions import IncludeLaunchDescription
 
 
 def read_params(
-    ld: launch.LaunchDescription,
+    ld: LaunchDescription,
     params: list[
         tuple[
             str,
@@ -43,38 +47,39 @@ def read_params(
 
     # Declare the launch options
     for param in params:
-        ld.add_action(
-            launch.actions.DeclareLaunchArgument(
-                name=param[0],
-                description=param[1],
-                default_value=param[2],
-            )
+        arg = DeclareLaunchArgument(
+            name=param[0],
+            description=param[1],
+            default_value=param[2],
         )
+        ld.add_action(arg)
     ret = {}
     for param in params:
-        ret[param[0]] = launch.substitutions.LaunchConfiguration(param[0])
+        ret[param[0]] = LaunchConfiguration(param[0])
     return ret
 
 
 def generate_launch_description():
 
     ld = launch.LaunchDescription()
+    verbose_arg = DeclareLaunchArgument(
+        name='verbose',
+        description='Enable verbose output',
+        default_value='false',
+    )
+    world_arg = DeclareLaunchArgument(
+        name='world_name',
+        description='Name of the world to load',
+        default_value='rb_theron_office',
+    )
     p = [
-        (
-            'verbose',
-            'Enable verbose output',
-            'false'
-        ),
-        (
-            'world_name',
-            'Name of the world to load',
-            'rb_theron_office'
-        )
+        verbose_arg,
+        world_arg,
     ]
     params = read_params(ld, p)
 
     ld.add_action(
-        launch.actions.IncludeLaunchDescription(
+        IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(
                     get_package_share_directory('gazebo_ros'),
@@ -103,7 +108,7 @@ def generate_launch_description():
     )
 
     ld.add_action(
-        launch.actions.IncludeLaunchDescription(
+        IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(
                     get_package_share_directory('gazebo_ros'),
