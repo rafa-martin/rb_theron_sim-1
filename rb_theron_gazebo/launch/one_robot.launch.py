@@ -23,16 +23,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import launch
-import launch_ros
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-
+from launch import LaunchDescription
+from lauch_ros.substitutions import FindPackageShare
+from launch.actions import IncludeLaunchDescription
+from launch.actions import GroupAction
 from robotnik_common.launch import add_launch_args
 
 
 def generate_launch_description():
 
-    ld = launch.LaunchDescription()
+    ld = LaunchDescription()
     p = [
         (
             'verbose',
@@ -80,10 +81,10 @@ def generate_launch_description():
 
     # Launch gazebo with the world
     ld.add_action(
-        launch.actions.IncludeLaunchDescription(
+        IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 [
-                    launch_ros.substitutions.FindPackageShare(
+                    FindPackageShare(
                         params['package_gazebo']
                     ),
                     '/launch/gazebo.launch.py'
@@ -98,12 +99,12 @@ def generate_launch_description():
 
     # Spawn the robot a
     ld.add_action(
-        launch.actions.GroupAction(
+        GroupAction(
             [
-                launch.actions.IncludeLaunchDescription(
+                IncludeLaunchDescription(
                     PythonLaunchDescriptionSource(
                         [
-                            launch_ros.substitutions.FindPackageShare(
+                            FindPackageShare(
                                 'rb_theron_gazebo'
                             ),
                             '/launch/spawn.launch.py'
