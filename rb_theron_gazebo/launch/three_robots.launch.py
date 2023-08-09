@@ -35,6 +35,11 @@ from launch.actions import DeclareLaunchArgument
 def generate_launch_description():
 
     ld = LaunchDescription()
+    gui_arg = DeclareLaunchArgument(
+        name='gui',
+        description='Set to "false" to run headless.',
+        default_value='true',
+    ),
     verbose_arg = DeclareLaunchArgument(
         name='verbose',
         description='Enable verbose output',
@@ -76,6 +81,7 @@ def generate_launch_description():
         default_value='0.1'
     )
     p = [
+        gui_arg,
         verbose_arg,
         gazebo_pkg_arg,
         world_arg,
@@ -100,6 +106,7 @@ def generate_launch_description():
                 ]
             ),
             launch_arguments={
+                'gui': params['gui'],
                 'verbose': params['verbose'],
                 'world_name': params['gazebo_world'],
             }.items()

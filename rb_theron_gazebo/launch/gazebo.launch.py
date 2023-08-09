@@ -31,6 +31,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.actions import IncludeLaunchDescription
+from launch.conditions import IfCondition
 
 
 def read_params(
@@ -62,6 +63,11 @@ def read_params(
 def generate_launch_description():
 
     ld = launch.LaunchDescription()
+    gui_arg = DeclareLaunchArgument(
+        name='gui',
+        description='Set to "false" to run headless.',
+        default_value='true',
+    ),
     verbose_arg = DeclareLaunchArgument(
         name='verbose',
         description='Enable verbose output',
@@ -73,6 +79,7 @@ def generate_launch_description():
         default_value='rb_theron_office',
     )
     p = [
+        gui_arg,
         verbose_arg,
         world_arg,
     ]
@@ -119,6 +126,9 @@ def generate_launch_description():
             launch_arguments={
                 'verbose': params['verbose'],
             }.items(),
+            condition=IfCondition(
+                LaunchConfiguration('gui')
+            )
         )
     )
 
