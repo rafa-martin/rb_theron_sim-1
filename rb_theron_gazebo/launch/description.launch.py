@@ -49,13 +49,12 @@ def read_params(
 
     # Declare the launch options
     for param in params:
-        ld.add_action(
-            DeclareLaunchArgument(
-                name=param[0],
-                description=param[1],
-                default_value=param[2],
-            )
+        arg = DeclareLaunchArgument(
+            name=param[0],
+            description=param[1],
+            default_value=param[2],
         )
+        ld.add_action(arg)
 
     # Get the launch configuration variables
     ret = {}
@@ -68,25 +67,28 @@ def read_params(
 def generate_launch_description():
 
     ld = LaunchDescription()
+    use_sime_time_arg = DeclareLaunchArgument(
+        name='use_sim_time',
+        description='Use simulation (Gazebo) clock if true',
+        default_value='true',
+    )
+    robot_id_arg = DeclareLaunchArgument(
+        name='robot_id',
+        description='Robot ID',
+        default_value='robot',
+    )
+    controller_path_arg = DeclareLaunchArgument(
+        name='controller_path',
+        description='Path of controllers',
+        default_value=[
+            FindPackageShare('rb_theron_gazebo'),
+            '/config/controller.yaml',
+        ],
+    )
     p = [
-        (
-            'use_sim_time',
-            'Use simulation (Gazebo) clock if true',
-            'true'
-        ),
-        (
-            'robot_id',
-            'Robot ID',
-            'robot'
-        ),
-        (
-            'controller_path',
-            'Path of controllers.',
-            [
-                FindPackageShare('rb_theron_gazebo'),
-                '/config/controller.yaml',
-            ]
-        ),
+        use_sime_time_arg,
+        robot_id_arg,
+        controller_path_arg,
     ]
     params = read_params(ld, p)
 
