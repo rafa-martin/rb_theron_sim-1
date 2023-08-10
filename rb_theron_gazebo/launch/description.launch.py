@@ -30,7 +30,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.actions import IncludeLaunchDescription
-from lauch_ros.substitutions import FindPackageShare
+from launch_ros.substitutions import FindPackageShare
 
 from robotnik_common.launch import RewrittenYaml
 

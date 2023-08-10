@@ -23,7 +23,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import launch
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -62,7 +61,7 @@ def read_params(
 
 def generate_launch_description():
 
-    ld = launch.LaunchDescription()
+    ld = LaunchDescription()
     gui_arg = DeclareLaunchArgument(
         name='gui',
         description='Set to "false" to run headless.',

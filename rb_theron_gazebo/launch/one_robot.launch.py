@@ -25,7 +25,7 @@
 
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch import LaunchDescription
-from lauch_ros.substitutions import FindPackageShare
+from launch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription
 from launch.actions import GroupAction
 from robotnik_common.launch import add_launch_args
