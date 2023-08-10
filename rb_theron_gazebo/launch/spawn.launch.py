@@ -27,49 +27,57 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
 from launch.actions import IncludeLaunchDescription
 from launch_ros.actions import Node
-
-from robotnik_common.launch import add_launch_args
+from robotnik_common.launch import ExtendedArgument
+from robotnik_common.launch import AddArgumentParser
 
 
 def generate_launch_description():
 
     ld = LaunchDescription()
-    robot_id_arg = DeclareLaunchArgument(
+    add_to_launcher = AddArgumentParser(ld)
+
+    arg = ExtendedArgument(
         name='robot_id',
         description='Robot ID',
         default_value='robot',
+        use_env=True,
     )
-    robot_des_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='robot_description_file',
         description='URDF file to load',
         default_value='default.urdf.xacro',
     )
-    pos_x_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='pos_x',
         description='X position of the robot',
-        default_value='0.0'
+        default_value='0.0',
+        use_env=True,
     )
-    pos_y_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='pos_y',
         description='Y position of the robot',
-        default_value='0.0'
+        default_value='0.0',
+        use_env=True,
     )
-    pos_z_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='pos_z',
         description='Z position of the robot',
-        default_value='0.1'
+        default_value='0.1',
+        use_env=True,
     )
-    p = [
-        robot_id_arg,
-        robot_des_arg,
-        pos_x_arg,
-        pos_y_arg,
-        pos_z_arg,
-    ]
-    params = add_launch_args(ld, p)
+    add_to_launcher.add_arg(arg)
+
+    params = add_to_launcher.process_arg()
 
     # Node to spawn the robot in Gazebo
     ld.add_action(

@@ -33,32 +33,6 @@ from launch.actions import IncludeLaunchDescription
 from launch.conditions import IfCondition
 
 
-def read_params(
-    ld: LaunchDescription,
-    params: list[
-        tuple[
-            str,
-            str,
-            str
-        ]
-    ]
-):
-    # name, description, default_value
-
-    # Declare the launch options
-    for param in params:
-        arg = DeclareLaunchArgument(
-            name=param[0],
-            description=param[1],
-            default_value=param[2],
-        )
-        ld.add_action(arg)
-    ret = {}
-    for param in params:
-        ret[param[0]] = LaunchConfiguration(param[0])
-    return ret
-
-
 def generate_launch_description():
 
     ld = LaunchDescription()
@@ -66,7 +40,7 @@ def generate_launch_description():
         name='gui',
         description='Set to "false" to run headless.',
         default_value='true',
-    ),
+    )
     verbose_arg = DeclareLaunchArgument(
         name='verbose',
         description='Enable verbose output',
@@ -77,12 +51,17 @@ def generate_launch_description():
         description='Name of the world to load',
         default_value='rb_theron_office',
     )
-    p = [
+
+    param_list = [
         gui_arg,
         verbose_arg,
         world_arg,
     ]
-    params = read_params(ld, p)
+    params = {}
+    for arg in param_list:
+        name = arg.name
+        ld.add_action(arg)
+        params[name] = LaunchConfiguration(arg.name)
 
     ld.add_action(
         IncludeLaunchDescription(
@@ -94,11 +73,11 @@ def generate_launch_description():
                 )
             ),
             launch_arguments={
-                'verbose': params['verbose'],
+                'verbose': LaunchConfiguration('verbose'),
                 'world': [
                     get_package_share_directory('rb_theron_gazebo'),
                     '/worlds/',
-                    params['world_name'],
+                    LaunchConfiguration('world_name'),
                     '.world'
                 ],
                 'paused': 'false',
@@ -123,7 +102,7 @@ def generate_launch_description():
                 )
             ),
             launch_arguments={
-                'verbose': params['verbose'],
+                'verbose': LaunchConfiguration('verbose'),
             }.items(),
             condition=IfCondition(
                 LaunchConfiguration('gui')

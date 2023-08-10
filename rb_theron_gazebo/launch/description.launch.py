@@ -27,57 +27,35 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.actions import IncludeLaunchDescription
 from launch_ros.substitutions import FindPackageShare
 
 from robotnik_common.launch import RewrittenYaml
-
-
-def read_params(
-    ld: LaunchDescription,
-    params: list[
-        tuple[
-            str,
-            str,
-            str,
-        ]
-    ]
-):
-    # name, description, default_value
-
-    # Declare the launch options
-    for param in params:
-        arg = DeclareLaunchArgument(
-            name=param[0],
-            description=param[1],
-            default_value=param[2],
-        )
-        ld.add_action(arg)
-
-    # Get the launch configuration variables
-    ret = {}
-    for param in params:
-        ret[param[0]] = LaunchConfiguration(param[0])
-
-    return ret
+from robotnik_common.launch import ExtendedArgument
+from robotnik_common.launch import AddArgumentParser
 
 
 def generate_launch_description():
 
     ld = LaunchDescription()
-    use_sime_time_arg = DeclareLaunchArgument(
+    add_to_launcher = AddArgumentParser(ld)
+
+    arg = ExtendedArgument(
         name='use_sim_time',
         description='Use simulation (Gazebo) clock if true',
         default_value='true',
     )
-    robot_id_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='robot_id',
         description='Robot ID',
         default_value='robot',
     )
-    controller_path_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='controller_path',
         description='Path of controllers',
         default_value=[
@@ -85,12 +63,9 @@ def generate_launch_description():
             '/config/controller.yaml',
         ],
     )
-    p = [
-        use_sime_time_arg,
-        robot_id_arg,
-        controller_path_arg,
-    ]
-    params = read_params(ld, p)
+    add_to_launcher.add_arg(arg)
+
+    params = add_to_launcher.process_arg()
 
     config_file_rewritten = RewrittenYaml(
         source_file=params['controller_path'],

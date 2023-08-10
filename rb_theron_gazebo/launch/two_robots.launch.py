@@ -28,71 +28,97 @@ from launch import LaunchDescription
 from lauch_ros.substitutions import FindPackageShare
 from launch.actions import IncludeLaunchDescription
 from launch.actions import GroupAction
-from robotnik_common.launch import add_launch_args
-from launch.actions import DeclareLaunchArgument
+from robotnik_common.launch import ExtendedArgument
+from robotnik_common.launch import AddArgumentParser
 
 
 def generate_launch_description():
 
     ld = LaunchDescription()
-    gui_arg = DeclareLaunchArgument(
+    add_to_launcher = AddArgumentParser(ld)
+
+    arg = ExtendedArgument(
         name='gui',
         description='Set to "false" to run headless.',
         default_value='true',
-    ),
-    verbose_arg = DeclareLaunchArgument(
+        use_env=True,
+        environment='GUI',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='verbose',
         description='Enable verbose output',
         default_value='false',
+        use_env=True,
+        environment='VERBOSE',
     )
-    gazebo_pkg_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='package_gazebo',
         description='Package name of the gazebo world',
-        default_value='rb_theron_gazebo'
+        default_value='rb_theron_gazebo',
+        use_env=True,
+        environment='PACKAGE_GAZEBO',
     )
-    world_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='gazebo_world',
         description='Name of the gazebo world',
         default_value='default',
+        use_env=True,
+        environment='GAZEBO_WORLD',
     )
-    robot_id_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='robot_id',
         description='Robot ID',
         default_value='robot',
+        use_env=True,
+        environment='ROBOT_ID',
     )
-    robot_des_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='robot_description_file',
         description='URDF file to load',
         default_value='default.urdf.xacro',
+        use_env=True,
+        environment='ROBOT_DESCRIPTION_FILE',
     )
-    pos_x_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='pos_x',
         description='X position of the robot',
-        default_value='0.0'
+        default_value='0.0',
+        use_env=True,
+        environment='POS_X',
     )
-    pos_y_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='pos_y',
         description='Y position of the robot',
-        default_value='0.0'
+        default_value='0.0',
+        use_env=True,
+        environment='POS_Y',
     )
-    pos_z_arg = DeclareLaunchArgument(
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='pos_z',
         description='Z position of the robot',
-        default_value='0.1'
+        default_value='0.1',
+        use_env=True,
+        environment='POS_Z',
     )
-    p = [
-        gui_arg,
-        verbose_arg,
-        gazebo_pkg_arg,
-        world_arg,
-        # First robot to spawn
-        robot_id_arg,
-        robot_des_arg,
-        pos_x_arg,
-        pos_y_arg,
-        pos_z_arg,
-    ]
-    params = add_launch_args(ld, p)
+    add_to_launcher.add_arg(arg)
+
+    params = add_to_launcher.process_arg()
 
     # Launch gazebo with the world
     ld.add_action(
