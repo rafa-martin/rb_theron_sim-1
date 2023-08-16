@@ -27,10 +27,8 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration
 from launch.actions import IncludeLaunchDescription
 from launch_ros.substitutions import FindPackageShare
-
 from robotnik_common.launch import RewrittenYaml
 from robotnik_common.launch import ExtendedArgument
 from robotnik_common.launch import AddArgumentParser
@@ -62,6 +60,12 @@ def generate_launch_description():
             FindPackageShare('rb_theron_gazebo'),
             '/config/controller.yaml',
         ],
+    )
+    add_to_launcher.add_arg(arg)
+    arg = ExtendedArgument(
+        name='gpu',
+        description='Use gpu for simulation',
+        default_value='true',
     )
     add_to_launcher.add_arg(arg)
 
@@ -101,6 +105,7 @@ def generate_launch_description():
                 'use_sim_time': params['use_sim_time'],
                 'robot_id': params['robot_id'],
                 'controller_path': config_file_rewritten,
+                'gpu': params['gpu'],
             }.items()
         )
     )
