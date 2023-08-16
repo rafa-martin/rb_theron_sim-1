@@ -39,6 +39,15 @@ def generate_launch_description():
     add_to_launcher = AddArgumentParser(ld)
 
     arg = ExtendedArgument(
+        name='gpu',
+        description='Set use of GPU',
+        default_value='true',
+        use_env=True,
+        environment='GPU',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
         name='robot_id',
         description='Robot ID',
         default_value='robot',
@@ -91,6 +100,7 @@ def generate_launch_description():
             ),
             launch_arguments={
                 'use_sim_time': 'true',
+                'gpu': params['gpu'],
                 'robot_id': params['robot_id'],
                 'robot_description_file': params['robot_description_file'],
             }.items(),

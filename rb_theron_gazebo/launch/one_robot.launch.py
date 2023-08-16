@@ -32,7 +32,6 @@ from robotnik_common.launch import ExtendedArgument
 from robotnik_common.launch import AddArgumentParser
 
 
-
 def generate_launch_description():
 
     ld = LaunchDescription()
@@ -44,6 +43,15 @@ def generate_launch_description():
         default_value='true',
         use_env=True,
         environment='GUI',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
+        name='gpu',
+        description='Set use of GPU',
+        default_value='true',
+        use_env=True,
+        environment='GPU',
     )
     add_to_launcher.add_arg(arg)
 
@@ -134,6 +142,7 @@ def generate_launch_description():
             ),
             launch_arguments={
                 'gui': params['gui'],
+                'gpu': params['gpu'],
                 'verbose': params['verbose'],
                 'world_name': params['gazebo_world'],
             }.items()
