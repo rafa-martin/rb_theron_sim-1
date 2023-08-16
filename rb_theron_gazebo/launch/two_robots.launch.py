@@ -197,29 +197,5 @@ def generate_launch_description():
             ]
         )
     )
-    # Spawn the robot c
-    ld.add_action(
-        GroupAction(
-            [
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(
-                        [
-                            FindPackageShare(
-                                'rb_theron_gazebo'
-                            ),
-                            '/launch/spawn.launch.py'
-                        ]
-                    ),
-                    launch_arguments={
-                        'robot_id': 'robot_c',
-                        'robot_description_file': 'dual_laser.urdf.xacro',
-                        'pos_x': '0.5',
-                        'pos_y': '-0.86',
-                        'pos_z': '0.1',
-                    }.items(),
-                )
-            ]
-        )
-    )
 
     return ld

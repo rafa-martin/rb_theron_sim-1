@@ -23,53 +23,157 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import launch, launch_ros
-from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch import LaunchDescription
+from launch_ros.substitutions import FindPackageShare
+from launch.actions import IncludeLaunchDescription
+from launch.actions import GroupAction
+from robotnik_common.launch import ExtendedArgument
+from robotnik_common.launch import AddArgumentParser
 
-from robotnik_common.launch import add_launch_args
 
 def generate_launch_description():
 
-  ld = launch.LaunchDescription()
-  p = [
-    ('verbose', 'Verbose output', 'false'),
-    ('package_gazebo', 'Package name of the gazebo world', 'rb_theron_gazebo'),
-    ('gazebo_world', 'Name of the gazebo world', 'default'),
-    # First robot to spawn
-    ('robot_id', 'Id of the robot', 'robot'),
-    ('robot_description_file', 'URDF file to load', 'dual_laser.urdf.xacro'),
-    ('pos_x', 'X position of the robot', '0.0'),
-    ('pos_y', 'Y position of the robot', '0.0'),
-    ('pos_z', 'Z position of the robot', '0.1')
-  ]
-  params = add_launch_args(ld, p)
+    ld = LaunchDescription()
+    add_to_launcher = AddArgumentParser(ld)
 
-  # Launch gazebo with the world
-  ld.add_action(launch.actions.IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-      [launch_ros.substitutions.FindPackageShare(params['package_gazebo']), '/launch/gazebo.launch.py']
-    ),
-    launch_arguments={
-      'verbose': params['verbose'],
-      'world_name': params['gazebo_world'],
-    }.items()
-  ))
-
-  # Spawn the robot a
-  ld.add_action(launch.actions.GroupAction([
-    launch.actions.IncludeLaunchDescription(
-      PythonLaunchDescriptionSource(
-        [launch_ros.substitutions.FindPackageShare('rb_theron_gazebo'), '/launch/spawn.launch.py']
-      ),
-      launch_arguments={
-        'robot_id': params['robot_id'],
-        'robot_description_file': params['robot_description_file'],
-        'pos_x': params['pos_x'],
-        'pos_y': params['pos_y'],
-        'pos_z': params['pos_z'],
-      }.items(),
+    arg = ExtendedArgument(
+        name='gui',
+        description='Set to "false" to run headless.',
+        default_value='true',
+        use_env=True,
+        environment='GUI',
     )
-  ]))
+    add_to_launcher.add_arg(arg)
 
-  return ld
+    arg = ExtendedArgument(
+        name='gpu',
+        description='Set use of GPU',
+        default_value='true',
+        use_env=True,
+        environment='GPU',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
+        name='verbose',
+        description='Enable verbose output',
+        default_value='false',
+        use_env=True,
+        environment='VERBOSE',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
+        name='package_gazebo',
+        description='Package name of the gazebo world',
+        default_value='rb_theron_gazebo',
+        use_env=True,
+        environment='PACKAGE_GAZEBO',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
+        name='gazebo_world',
+        description='Name of the gazebo world',
+        default_value='default',
+        use_env=True,
+        environment='GAZEBO_WORLD',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
+        name='robot_id',
+        description='Robot ID',
+        default_value='robot',
+        use_env=True,
+        environment='ROBOT_ID',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
+        name='robot_description_file',
+        description='URDF file to load',
+        default_value='default.urdf.xacro',
+        use_env=True,
+        environment='ROBOT_DESCRIPTION_FILE',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
+        name='pos_x',
+        description='X position of the robot',
+        default_value='0.0',
+        use_env=True,
+        environment='POS_X',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
+        name='pos_y',
+        description='Y position of the robot',
+        default_value='0.0',
+        use_env=True,
+        environment='POS_Y',
+    )
+    add_to_launcher.add_arg(arg)
+
+    arg = ExtendedArgument(
+        name='pos_z',
+        description='Z position of the robot',
+        default_value='0.1',
+        use_env=True,
+        environment='POS_Z',
+    )
+    add_to_launcher.add_arg(arg)
+
+    params = add_to_launcher.process_arg()
+
+    # Launch gazebo with the world
+    ld.add_action(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                [
+                    FindPackageShare(
+                        'rb_theron_gazebo'
+                    ),
+                    '/launch/gazebo.launch.py'
+                ]
+            ),
+            launch_arguments={
+                'gui': params['gui'],
+                'gpu': params['gpu'],
+                'verbose': params['verbose'],
+                'world_name': params['gazebo_world'],
+            }.items()
+        )
+    )
+
+    # Spawn the robot a
+    ld.add_action(
+        GroupAction(
+            [
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(
+                        [
+                            FindPackageShare(
+                                'rb_theron_gazebo'
+                            ),
+                            '/launch/spawn.launch.py'
+                        ]
+                    ),
+                    launch_arguments={
+                        'robot_id': params['robot_id'],
+                        'robot_description_file': params[
+                            'robot_description_file'
+                        ],
+                        'pos_x': params['pos_x'],
+                        'pos_y': params['pos_y'],
+                        'pos_z': params['pos_z'],
+                    }.items(),
+                )
+            ]
+        )
+    )
+
+    return ld

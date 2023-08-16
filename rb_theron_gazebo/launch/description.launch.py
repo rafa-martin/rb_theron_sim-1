@@ -1,4 +1,4 @@
-# Copyright (c) 2023, Robotnik Automation S.L.L.
+# Copyright (c) 2023, Robotnik Automation S.L.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,61 +23,91 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, launch, launch_ros
+import os
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch_ros.substitutions import FindPackageShare
 from robotnik_common.launch import RewrittenYaml
-
-def read_params(ld : launch.LaunchDescription, params : list[tuple[str, str, str]]): # name, description, default_value
-
-  # Declare the launch options
-  for param in params:
-    ld.add_action(launch.actions.DeclareLaunchArgument(
-      name=param[0], description=param[1], default_value=param[2],))
-
-  # Get the launch configuration variables
-  ret={}
-  for param in params:
-    ret[param[0]] = launch.substitutions.LaunchConfiguration(param[0])
-
-  return ret
+from robotnik_common.launch import ExtendedArgument
+from robotnik_common.launch import AddArgumentParser
 
 
 def generate_launch_description():
 
-  ld = launch.LaunchDescription()
-  p = [
-    ('use_sim_time', 'Use simulation (Gazebo) clock if true', 'true'),
-    ('robot_id', 'Robot ID', 'robot'),
-    ('controller_path', 'Path of controllers.', [launch_ros.substitutions.FindPackageShare('rb_theron_gazebo'), '/config/controller.yaml',]),
-  ]
-  params = read_params(ld, p)
+    ld = LaunchDescription()
+    add_to_launcher = AddArgumentParser(ld)
 
-  config_file_rewritten = RewrittenYaml(
-      source_file=params['controller_path'],
-      param_rewrites={
-          'left_wheel_names':
-              ['[\'left_wheel_joint', '\']'],
-          'right_wheel_names':
-              ['[\'right_wheel_joint','\']'],
-          'odom_frame_id': ['odom'],
-          'base_frame_id': ['base_footprint'],
-      },
-      root_key=[params['robot_id'],],
-      convert_types=True,
-  )
+    arg = ExtendedArgument(
+        name='use_sim_time',
+        description='Use simulation (Gazebo) clock if true',
+        default_value='true',
+    )
+    add_to_launcher.add_arg(arg)
 
-  ld.add_action(launch.actions.IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-      os.path.join(get_package_share_directory('rb_theron_description'), 'launch', 'default.launch.py')
-    ),
-    launch_arguments={
-      'environment': 'false',
-      'use_sim_time': params['use_sim_time'],
-      'robot_id': params['robot_id'],
-      'controller_path': config_file_rewritten,
-    }.items()
-  ))
+    arg = ExtendedArgument(
+        name='robot_id',
+        description='Robot ID',
+        default_value='robot',
+    )
+    add_to_launcher.add_arg(arg)
 
-  return ld
+    arg = ExtendedArgument(
+        name='controller_path',
+        description='Path of controllers',
+        default_value=[
+            FindPackageShare('rb_theron_gazebo'),
+            '/config/controller.yaml',
+        ],
+    )
+    add_to_launcher.add_arg(arg)
+    arg = ExtendedArgument(
+        name='gpu',
+        description='Use gpu for simulation',
+        default_value='true',
+    )
+    add_to_launcher.add_arg(arg)
+
+    params = add_to_launcher.process_arg()
+
+    config_file_rewritten = RewrittenYaml(
+        source_file=params['controller_path'],
+        param_rewrites={
+            'left_wheel_names': [
+                '[\'left_wheel_joint',
+                '\']'
+            ],
+            'right_wheel_names': [
+                '[\'right_wheel_joint',
+                '\']'
+            ],
+            'odom_frame_id': ['odom'],
+            'base_frame_id': ['base_footprint'],
+        },
+        root_key=[
+            params['robot_id'],
+        ],
+        convert_types=True,
+    )
+
+    ld.add_action(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(
+                    get_package_share_directory('rb_theron_description'),
+                    'launch',
+                    'default.launch.py'
+                )
+            ),
+            launch_arguments={
+                'environment': 'false',
+                'use_sim_time': params['use_sim_time'],
+                'robot_id': params['robot_id'],
+                'controller_path': config_file_rewritten,
+                'gpu': params['gpu'],
+            }.items()
+        )
+    )
+
+    return ld

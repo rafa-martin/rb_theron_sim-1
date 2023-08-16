@@ -1,4 +1,4 @@
-# Copyright (c) 2023, Robotnik Automation S.L.L.
+# Copyright (c) 2023, Robotnik Automation S.L.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -23,55 +23,91 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import launch, launch_ros, os
+import os
 from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-
-def read_params(ld : launch.LaunchDescription, params : list[tuple[str, str, str]]): # name, description, default_value
-
-  # Declare the launch options
-  for param in params:
-    ld.add_action(launch.actions.DeclareLaunchArgument(
-      name=param[0], description=param[1], default_value=param[2],))
-
-  ret={}
-  for param in params:
-    ret[param[0]] = launch.substitutions.LaunchConfiguration(param[0])
-
-  return ret
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch.actions import IncludeLaunchDescription
+from launch.conditions import IfCondition
 
 
 def generate_launch_description():
 
-  ld = launch.LaunchDescription()
-  p = [
-    ('verbose', 'Enable verbose output', 'false'),
-    ('world_name', 'Name of the world to load', 'rb_theron_office')
-  ]
-  params = read_params(ld, p)
+    ld = LaunchDescription()
+    gui_arg = DeclareLaunchArgument(
+        name='gui',
+        description='Set to "false" to run headless.',
+        default_value='true',
+    )
+    verbose_arg = DeclareLaunchArgument(
+        name='verbose',
+        description='Enable verbose output',
+        default_value='false',
+    )
+    world_arg = DeclareLaunchArgument(
+        name='world_name',
+        description='Name of the world to load',
+        default_value='rb_theron_office',
+    )
 
-  ld.add_action(launch.actions.IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-      os.path.join(get_package_share_directory('gazebo_ros'), 'launch', 'gzserver.launch.py')
-    ),
-    launch_arguments={
-      'verbose': params['verbose'],
-      'world': [get_package_share_directory('rb_theron_gazebo'), '/worlds/', params['world_name'], '.world'],
-      'paused': 'false',
-      'init': 'true',
-      'factory': 'true',
-      'force_system': 'true',
-      'params_file': [get_package_share_directory('rb_theron_gazebo'), '/config/gazebo.yaml'],
-    }.items(),
-  ))
+    param_list = [
+        gui_arg,
+        verbose_arg,
+        world_arg,
+    ]
+    params = {}
+    for arg in param_list:
+        name = arg.name
+        ld.add_action(arg)
+        params[name] = LaunchConfiguration(arg.name)
 
-  ld.add_action(launch.actions.IncludeLaunchDescription(
-    PythonLaunchDescriptionSource(
-      os.path.join(get_package_share_directory('gazebo_ros'), 'launch', 'gzclient.launch.py')
-    ),
-    launch_arguments={
-      'verbose': params['verbose'],
-    }.items(),
-  ))
+    ld.add_action(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(
+                    get_package_share_directory('gazebo_ros'),
+                    'launch',
+                    'gzserver.launch.py'
+                )
+            ),
+            launch_arguments={
+                'verbose': LaunchConfiguration('verbose'),
+                'world': [
+                    get_package_share_directory('rb_theron_gazebo'),
+                    '/worlds/',
+                    LaunchConfiguration('world_name'),
+                    '.world'
+                ],
+                'paused': 'false',
+                'init': 'true',
+                'factory': 'true',
+                'force_system': 'true',
+                'params_file': [
+                    get_package_share_directory('rb_theron_gazebo'),
+                    '/config/gazebo.yaml'
+                ],
+            }.items(),
+        )
+    )
 
-  return ld
+    ld.add_action(
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(
+                    get_package_share_directory('gazebo_ros'),
+                    'launch',
+                    'gzclient.launch.py'
+                )
+            ),
+            launch_arguments={
+                'verbose': LaunchConfiguration('verbose'),
+            }.items(),
+            condition=IfCondition(
+                LaunchConfiguration('gui')
+            )
+        )
+    )
+
+    return ld
